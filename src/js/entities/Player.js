@@ -8,9 +8,19 @@ export class Player {
         this.position = new THREE.Vector3();
         this.isJumping = false;
         this.jumpVelocity = 0;
-        this.jumpForce = 0.3;
-        this.gravity = -0.015;
-        this.forwardSpeed = 0.05; // Speed for forward movement
+        this.jumpForce = 0.4; // Increased for more satisfying jumps
+        this.gravity = -0.022; // Increased gravity for snappier falls
+        this.forwardSpeed = 0.05;
+        
+        // New animation properties
+        this.squashStretch = {
+            normal: new THREE.Vector3(1, 1, 1),
+            jump: new THREE.Vector3(0.8, 1.2, 0.8),
+            land: new THREE.Vector3(1.2, 0.8, 1.2),
+            current: new THREE.Vector3(1, 1, 1)
+        };
+        this.animationState = 'idle';
+        this.walkCycle = 0;
         
         this.init();
     }
@@ -18,78 +28,102 @@ export class Player {
     init() {
         this.mesh = new THREE.Group();
 
-        // Body (blue overalls) - made shorter and slightly wider
+        // Body (blue overalls) - made rounder and deeper for side view
         const body = new THREE.Mesh(
-            new THREE.BoxGeometry(1.8, 1.6, 1),
+            new THREE.BoxGeometry(1.2, 1.6, 1.8),
             new THREE.MeshBasicMaterial({ color: 0x0000ff })
         );
+        body.position.z = 0;
 
-        // Shirt (red) - adjusted to match body
+        // Shirt (red) - adjusted to be slightly larger and offset forward
         const shirt = new THREE.Mesh(
-            new THREE.BoxGeometry(1.8, 0.8, 1),
+            new THREE.BoxGeometry(1.3, 0.8, 1.9), // Slightly larger than body
             new THREE.MeshBasicMaterial({ color: 0xff0000 })
         );
-        shirt.position.y = 0.4;
+        shirt.position.set(0, 0.4, 0.05); // Moved slightly forward in z-axis
 
-        // Head (skin tone) - made slightly larger relative to body
+        // Belly (blue overalls)
+        const belly = new THREE.Mesh(
+            new THREE.SphereGeometry(0.9, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0x0000ff })
+        );
+        belly.position.set(0, -0.2, 0.2);
+
+        // Head (skin tone) - more oval for side view
         const head = new THREE.Mesh(
-            new THREE.BoxGeometry(1.4, 1.4, 1.4),
+            new THREE.SphereGeometry(0.7, 16, 16),
             new THREE.MeshBasicMaterial({ color: 0xffd700 })
         );
         head.position.y = 1.2;
+        head.scale.set(1, 1, 0.8); // Slightly squashed front-to-back
 
-        // Main cap part (red) - moved forward
+        // Nose (skin tone) - characteristic Mario nose
+        const nose = new THREE.Mesh(
+            new THREE.SphereGeometry(0.25, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0xffd700 })
+        );
+        nose.position.set(0, 1.2, 0.7); // Positioned on face
+        nose.scale.set(0.8, 0.8, 1); // Elongated forward
+
+        // Main cap part (red)
         const capTop = new THREE.Mesh(
-            new THREE.BoxGeometry(1.5, 0.5, 1.3),
+            new THREE.SphereGeometry(0.75, 16, 16),
             new THREE.MeshBasicMaterial({ color: 0xff0000 })
         );
-        capTop.position.set(0, 1.7, 0.3); // Added Z offset
+        capTop.position.set(0, 1.7, 0);
+        capTop.scale.set(1, 0.5, 1);
 
-        // Cap brim (red) - extended more forward
+        // Cap brim (red)
         const capBrim = new THREE.Mesh(
-            new THREE.BoxGeometry(1.8, 0.2, 1.6),
+            new THREE.BoxGeometry(1.2, 0.1, 0.8),
             new THREE.MeshBasicMaterial({ color: 0xff0000 })
         );
-        capBrim.position.set(0, 1.5, 0.5); // Increased Z offset
+        capBrim.position.set(0, 1.5, 0.7);
 
-        // White circle for M logo - moved forward with the cap
+        // White circle for M logo
         const logo = new THREE.Mesh(
             new THREE.CircleGeometry(0.25, 16),
             new THREE.MeshBasicMaterial({ color: 0xffffff })
         );
-        logo.position.set(0, 1.7, 0.96); // Adjusted to be on the front of cap
-        logo.rotation.x = -Math.PI * 0.1;
+        logo.position.set(0, 1.6, 0.76);
+        logo.rotation.x = 0; // Flat against cap front
 
-        // Arms (red) - made shorter
+        // Arms (red) - shorter and rounder
         const leftArm = new THREE.Mesh(
-            new THREE.BoxGeometry(0.4, 1, 0.4),
+            new THREE.CapsuleGeometry(0.2, 0.6, 4, 8),
             new THREE.MeshBasicMaterial({ color: 0xff0000 })
         );
-        leftArm.position.set(-1.1, 0.2, 0);
+        leftArm.position.set(-0.8, 0.2, 0);
+        leftArm.rotation.z = -0.2;
         
         const rightArm = new THREE.Mesh(
-            new THREE.BoxGeometry(0.4, 1, 0.4),
+            new THREE.CapsuleGeometry(0.2, 0.6, 4, 8),
             new THREE.MeshBasicMaterial({ color: 0xff0000 })
         );
-        rightArm.position.set(1.1, 0.2, 0);
+        rightArm.position.set(0.8, 0.2, 0);
+        rightArm.rotation.z = 0.2;
 
-        // Legs (blue) - made shorter and slightly thicker
+        // Legs (blue) - shorter and rounder
         const leftLeg = new THREE.Mesh(
-            new THREE.BoxGeometry(0.6, 0.8, 0.6),
+            new THREE.CapsuleGeometry(0.3, 0.4, 4, 8),
             new THREE.MeshBasicMaterial({ color: 0x0000ff })
         );
-        leftLeg.position.set(-0.5, -1.2, 0);
+        leftLeg.position.set(-0.4, -1.2, 0);
+        leftLeg.name = 'leftLeg';
 
         const rightLeg = new THREE.Mesh(
-            new THREE.BoxGeometry(0.6, 0.8, 0.6),
+            new THREE.CapsuleGeometry(0.3, 0.4, 4, 8),
             new THREE.MeshBasicMaterial({ color: 0x0000ff })
         );
-        rightLeg.position.set(0.5, -1.2, 0);
+        rightLeg.position.set(0.4, -1.2, 0);
+        rightLeg.name = 'rightLeg';
 
         // Add all parts to the group
         this.mesh.add(body);
+        this.mesh.add(belly);
         this.mesh.add(shirt);
         this.mesh.add(head);
+        this.mesh.add(nose);
         this.mesh.add(capTop);
         this.mesh.add(capBrim);
         this.mesh.add(logo);
@@ -98,35 +132,84 @@ export class Player {
         this.mesh.add(leftLeg);
         this.mesh.add(rightLeg);
 
-        // Position the player
+        // Position the player and rotate for side view
         this.mesh.position.set(-5, -3, 0);
+        this.mesh.rotation.y = Math.PI / 2; // Rotate 90 degrees to face right
         this.scene.add(this.mesh);
     }
 
     update() {
+        const deltaTime = 1/60; // Assuming 60fps
+
         if (this.isJumping) {
-            // Apply gravity to jump velocity
-            this.jumpVelocity += this.gravity;
+            // Apply gravity with proper time-based physics
+            this.jumpVelocity += this.gravity * deltaTime * 60;
             this.mesh.position.y += this.jumpVelocity;
 
-            // Check for ground collision
+            // Squash and stretch during jump
+            if (this.jumpVelocity > 0) {
+                this.animateSquashStretch(this.squashStretch.jump, 0.15);
+            } else {
+                this.animateSquashStretch(this.squashStretch.normal, 0.15);
+            }
+
+            // Ground collision with bounce recovery
             if (this.mesh.position.y <= -3) {
                 this.mesh.position.y = -3;
                 this.isJumping = false;
                 this.jumpVelocity = 0;
+                this.animationState = 'landing';
+                this.animateSquashStretch(this.squashStretch.land, 0.1);
+            }
+        } else {
+            // Idle animation with improved bounce and leg movement
+            if (this.animationState === 'idle') {
+                const bounceHeight = Math.sin(Date.now() * 0.003) * 0.1;
+                this.mesh.position.y = -3 + bounceHeight;
+                
+                // Subtle body rotation
+                this.mesh.rotation.z = Math.sin(Date.now() * 0.002) * 0.02;
+                
+                // Animate legs opposite to the bounce
+                this.mesh.children.forEach(child => {
+                    if (child.name === 'leftLeg' || child.name === 'rightLeg') {
+                        child.position.y = -1.2 + bounceHeight * 0.3;
+                    }
+                });
             }
         }
 
-        // Add a small bounce animation when idle
-        if (!this.isJumping) {
-            this.mesh.position.y = -3 + Math.sin(Date.now() * 0.003) * 0.1;
+        // Recovery from landing squash
+        if (this.animationState === 'landing') {
+            this.animateSquashStretch(this.squashStretch.normal, 0.2);
+            if (this.mesh.scale.distanceTo(this.squashStretch.normal) < 0.05) {
+                this.animationState = 'idle';
+            }
         }
     }
 
-    // Method to move player when correct letter is typed
+    // New helper method for squash and stretch
+    animateSquashStretch(targetScale, speed) {
+        this.mesh.scale.lerp(targetScale, speed);
+    }
+
     moveForward() {
-        // Move player forward more significantly
         this.mesh.position.x += this.forwardSpeed;
+        
+        // Add running animation
+        this.walkCycle += 0.2;
+        const legAngle = Math.sin(this.walkCycle) * 0.3;
+        
+        this.mesh.children.forEach(child => {
+            if (child.name === 'leftLeg') {
+                child.rotation.x = legAngle;
+            } else if (child.name === 'rightLeg') {
+                child.rotation.x = -legAngle;
+            }
+        });
+        
+        // Slight tilt while running
+        this.mesh.rotation.z = -0.1;
     }
 
     jumpAndBreak(box) {
