@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Player } from './entities/Player.js';
 import { TypingManager } from './managers/TypingManager.js';
 import { UIManager } from './managers/UIManager.js';
+import { BackgroundManager } from './managers/BackgroundManager.js';
 
 export class Game {
     constructor() {
@@ -31,6 +32,10 @@ export class Game {
             ['F', 'J', 'D', 'K', 'S', 'L', 'A', ';'], // Level 4
             // Add more letter combinations for higher levels
         ];
+        
+        // Remove background properties from constructor
+        this.backgrounds = null;
+        this.backgroundLayers = null;
     }
 
     init() {
@@ -54,8 +59,11 @@ export class Game {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
 
-        // Set sky blue background
-        this.renderer.setClearColor(0x5c94fc); // Classic Mario sky blue
+        // Remove the single background color
+        // this.renderer.setClearColor(0x5c94fc);
+        
+        // Create background manager
+        this.backgroundManager = new BackgroundManager(this.scene);
 
         // Create ground (brown platform)
         const groundGeometry = new THREE.PlaneGeometry(50, 4);
@@ -241,6 +249,9 @@ export class Game {
             }
             return true;
         });
+
+        // Update background positions
+        this.backgroundManager.update();
 
         this.renderer.render(this.scene, this.camera);
     }
