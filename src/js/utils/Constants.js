@@ -1,0 +1,33 @@
+export const COLORS = {
+    PLAYER_BODY: 0x0000ff,
+    PLAYER_SHIRT: 0xff0000,
+    PLAYER_HEAD: 0xffd700,
+    OBSTACLE: 0xcd853f,
+    SKY: 0x87CEEB,
+    SUN: 0xFFFF00,
+    GROUND: 0xA0522D
+};
+
+export const GAME_CONSTANTS = {
+    SCROLL_SPEED: 0.02,
+    SPAWN_INTERVAL: 2000,
+    SCORE_INCREMENT: 100,
+    GAME_OVER_THRESHOLD: -15
+};
+
+export const PLAYER_CONSTANTS = {
+    JUMP_HEIGHT: 3,
+    JUMP_DURATION: 0.5,
+    MOVE_SPEED: 0.1
+};
+
+export const OBSTACLE_CONSTANTS = {
+    BASE_DISTANCE: 8,
+    HEIGHT: 2,
+    POSSIBLE_LETTERS: ['F', 'J', 'D', 'K', 'S', 'L', 'A', 'H']
+};
+
+export const UI_SETTINGS = {
+    COMBO_DISPLAY_TIME: 1000,
+    LEVEL_COMPLETE_DISPLAY_TIME: 3000
+}; 
