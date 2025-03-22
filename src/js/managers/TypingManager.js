@@ -18,9 +18,18 @@ export class TypingManager {
     }
 
     setupMobileInput() {
+        const typingUI = document.getElementById('typing-ui');
+        
         // Show keyboard when typing UI is tapped
-        document.getElementById('typing-ui').addEventListener('click', () => {
+        typingUI.addEventListener('click', () => {
+            // Focus and scroll into view for iOS
             this.mobileInput.focus();
+            this.mobileInput.scrollIntoView(false);
+            
+            // Add a small delay to ensure proper scrolling on iOS
+            setTimeout(() => {
+                window.scrollTo(0, document.body.scrollHeight);
+            }, 100);
         });
         
         // Handle mobile input
@@ -31,6 +40,9 @@ export class TypingManager {
                 this.mobileInput.value = '';
             }
         });
+
+        // Prevent zoom on focus (iOS)
+        this.mobileInput.setAttribute('style', 'font-size: 16px');  // Prevents zoom on iOS
     }
 
     handleTyping(typed) {

@@ -57,15 +57,24 @@ export class Game {
         
         // Set up camera
         const aspectRatio = window.innerWidth / window.innerHeight;
+        let cameraSize = 10; // Base size for landscape
+        
+        if (aspectRatio < 1) { // Portrait mode
+            cameraSize = 25; // Increased from 15 to 25 to show more of the road
+        }
+        
         this.camera = new THREE.OrthographicCamera(
-            -10 * aspectRatio,
-            10 * aspectRatio,
-            10,
-            -10,
+            -cameraSize * aspectRatio,
+            cameraSize * aspectRatio,
+            cameraSize,
+            -cameraSize,
             0.1,
             1000
         );
-        this.camera.position.set(0, 0, 10);
+        
+        // Adjust camera position for better view in portrait
+        this.camera.position.set(0, 5, 10);
+        this.camera.lookAt(0, 0, 0); // Changed from (0, 2, 0) to (0, 0, 0) for better centering
 
         // Set up renderer
         this.renderer = new THREE.WebGLRenderer();
@@ -92,6 +101,20 @@ export class Game {
 
         // Start animation loop
         this.animate();
+
+        // Update resize handler
+        window.addEventListener('resize', () => {
+            const newAspectRatio = window.innerWidth / window.innerHeight;
+            const newSize = newAspectRatio < 1 ? 25 : 10; // Updated to match new portrait size
+            
+            this.camera.left = -newSize * newAspectRatio;
+            this.camera.right = newSize * newAspectRatio;
+            this.camera.top = newSize;
+            this.camera.bottom = -newSize;
+            this.camera.updateProjectionMatrix();
+            
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     }
 
     createNewObstacle() {
