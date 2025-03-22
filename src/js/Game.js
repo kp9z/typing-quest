@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Player } from './Player.js';
+import { Player } from './entities/Player.js';
 import { TypingManager } from './managers/TypingManager.js';
 import { UIManager } from './managers/UIManager.js';
 
