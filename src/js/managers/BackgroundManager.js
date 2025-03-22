@@ -49,17 +49,41 @@ export class BackgroundManager {
     }
 
     createGround() {
-        // Create main ground platform (darker brown)
+        // Create main ground platform (darker brown base)
         const groundGeometry = new THREE.PlaneGeometry(100, 6);
         const groundMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0x654321  // Darker brown
+            color: 0x993333  // Darker brick red base
         });
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.position.set(0, -5, -3);
         this.scene.add(ground);
 
+        // Create horizontal brick pattern at player level
+        const brickWidth = 2;
+        const totalBricks = Math.ceil(100 / brickWidth);
+        
+        for (let i = 0; i < totalBricks; i++) {
+            // Create brick outline/mortar
+            const brickOutlineGeometry = new THREE.PlaneGeometry(1.95, 0.95);
+            const brickOutlineMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x666666,  // Dark grey for mortar
+            });
+            const brickOutline = new THREE.Mesh(brickOutlineGeometry, brickOutlineMaterial);
+            brickOutline.position.set(-50 + (i * brickWidth), -2.5, -2.9);
+            this.scene.add(brickOutline);
+
+            // Create brick
+            const brickGeometry = new THREE.PlaneGeometry(1.8, 0.8);
+            const brickMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xA0522D, // Lighter brick color
+            });
+            const brick = new THREE.Mesh(brickGeometry, brickMaterial);
+            brick.position.set(-50 + (i * brickWidth), -2.5, -2.8);
+            this.scene.add(brick);
+        }
+
         // Create thin highlight line
-        const lineGeometry = new THREE.PlaneGeometry(100, 0.2);
+        const lineGeometry = new THREE.PlaneGeometry(100, 0.1);
         const lineMaterial = new THREE.MeshBasicMaterial({ 
             color: 0x8B7355,  // Light brown
             transparent: true,
