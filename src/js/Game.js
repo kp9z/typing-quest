@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Player } from './Player.js';
-import { TypingManager } from './TypingManager.js';
-import { UIManager } from './UIManager.js';
+import { TypingManager } from './managers/TypingManager.js';
+import { UIManager } from './managers/UIManager.js';
 
 export class Game {
     constructor() {
