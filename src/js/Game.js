@@ -9,16 +9,28 @@ export class Game {
         this.camera = null;
         this.renderer = null;
         this.clock = new THREE.Clock();
-        this.possibleLetters = ['F', 'J']; // Only F and J for first level
-        this.boxes = []; // Store box and letter pairs
-        this.scrollSpeed = 0.03;
+        this.possibleLetters = ['F', 'J']; // Starting letters
+        this.boxes = [];
+        this.scrollSpeed = 0.03; // Initial speed
         this.isTypingCorrect = false;
         this.nextSpawnTime = 0;
-        this.spawnInterval = 2000; // Time between spawns in milliseconds
+        this.spawnInterval = 2000;
         this.lastTime = Date.now();
-        this.score = 0;  // Add score property
-        this.uiManager = new UIManager();  // Add UIManager
+        this.score = 0;
+        this.uiManager = new UIManager();
         this.isGameOver = false;
+        
+        // Add new properties for difficulty scaling
+        this.level = 1;
+        this.blocksPassedInLevel = 0;
+        this.baseScrollSpeed = 0.03;
+        this.letterSets = [
+            ['F', 'J'],                         // Level 1
+            ['F', 'J', 'D', 'K'],              // Level 2
+            ['F', 'J', 'D', 'K', 'S', 'L'],    // Level 3
+            ['F', 'J', 'D', 'K', 'S', 'L', 'A', ';'], // Level 4
+            // Add more letter combinations for higher levels
+        ];
     }
 
     init() {
@@ -116,6 +128,62 @@ export class Game {
         if (this.typingManager) this.typingManager.updateTargetLetter();
     }
 
+    updateDifficulty() {
+        // Calculate what level we should be at based on score
+        const shouldBeLevel = Math.floor(this.score / 500) + 1;
+        
+        // If we should level up
+        if (shouldBeLevel > this.level) {
+            const oldLevel = this.level;
+            this.level = shouldBeLevel;
+            
+            // Update letters based on level
+            const letterSetIndex = Math.min(this.level - 1, this.letterSets.length - 1);
+            
+            // Make sure we're creating a new array
+            this.possibleLetters = Array.from(this.letterSets[letterSetIndex]);
+            
+            // Force-update next obstacle to use new letter set
+            if (this.boxes.length > 0) {
+                const lastIndex = this.boxes.length - 1;
+                // Update the most recently created box if it's still far away
+                if (this.boxes[lastIndex].box.position.x > 5) {
+                    const newLetter = this.possibleLetters[Math.floor(Math.random() * this.possibleLetters.length)];
+                    
+                    // Update the letter text
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = 64;
+                    canvas.height = 64;
+                    context.fillStyle = 'white';
+                    context.font = 'bold 48px Arial';
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.fillText(newLetter, 32, 32);
+                    
+                    const texture = new THREE.CanvasTexture(canvas);
+                    this.boxes[lastIndex].letter.material.map = texture;
+                    this.boxes[lastIndex].letter.material.needsUpdate = true;
+                    this.boxes[lastIndex].character = newLetter;
+                }
+            }
+            
+            // Increase speed with each level (cap at 2x initial speed)
+            this.scrollSpeed = Math.min(
+                this.baseScrollSpeed * (1 + (this.level - 1) * 0.2),
+                this.baseScrollSpeed * 2
+            );
+            
+            // Decrease spawn interval (minimum 1000ms)
+            this.spawnInterval = Math.max(2000 - (this.level - 1) * 200, 1000);
+            
+            // Notify player of level increase
+            console.log(`Level up from ${oldLevel} to ${this.level}! Score: ${this.score}`);
+            console.log(`New letters: ${this.possibleLetters.join(',')}`);
+            console.log(`New speed: ${this.scrollSpeed.toFixed(3)}, New spawn interval: ${this.spawnInterval}ms`);
+        }
+    }
+
     animate() {
         this.animationFrameId = requestAnimationFrame(this.animate.bind(this));
         const currentTime = Date.now();
@@ -155,6 +223,24 @@ export class Game {
             // Update last time for next frame
             this.lastTime = Date.now();
         }
+
+        // Add box cleanup and scoring logic
+        this.boxes = this.boxes.filter(box => {
+            if (!box.completed && box.box.position.x < this.player.mesh.position.x && this.isTypingCorrect) {
+                box.completed = true;
+                this.score++;
+                this.updateDifficulty(); // Call difficulty update when passing a box correctly
+                this.uiManager.updateScore(this.score);
+            }
+            
+            // Remove boxes that are far behind
+            if (box.box.position.x < -20) {
+                this.scene.remove(box.box);
+                this.scene.remove(box.letter);
+                return false;
+            }
+            return true;
+        });
 
         this.renderer.render(this.scene, this.camera);
     }

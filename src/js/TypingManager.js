@@ -44,6 +44,9 @@ export class TypingManager {
             this.game.score += 100;
             this.game.uiManager.updateScore(this.game.score);
             
+            // Call updateDifficulty after updating score
+            this.game.updateDifficulty();
+            
             const targetX = this.currentBox.box.position.x;
             const currentX = this.game.player.mesh.position.x;
             const distance = targetX - currentX;
