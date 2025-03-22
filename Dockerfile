@@ -1,8 +1,26 @@
-# Use a lightweight Nginx image
+# Build stage
+FROM node:18-alpine as build
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy all source files
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Serve stage
 FROM nginx:alpine
 
-# Copy the application files to nginx's serve directory
-COPY src /usr/share/nginx/html
+# Copy the built files from build stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # Expose port 8080 (App Platform prefers this port)
 EXPOSE 8080
