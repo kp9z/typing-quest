@@ -107,7 +107,8 @@ export class Player {
     }
 
     onKeyDown(event) {
-        if (event.code === 'Space' && !this.isJumping) {
+        // Only handle space key and prevent jumping when typing
+        if (event.code === 'Space' && !this.isJumping && !this.game.isTypingCorrect) {
             this.jump();
         }
     }
