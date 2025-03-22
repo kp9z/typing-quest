@@ -7,7 +7,9 @@ export class TypingManager {
         this.targetLetter = '';
         this.currentBox = null;  // Track current box
         this.targetWordDisplay = document.getElementById('target-word');
+        this.mobileInput = document.getElementById('mobile-input');
         this.init();
+        this.setupMobileInput();
     }
 
     init() {
@@ -15,22 +17,23 @@ export class TypingManager {
         this.updateTargetLetter();
     }
 
-    updateTargetLetter() {
-        // Find the first uncompleted box that hasn't been passed
-        const nextBox = this.game.boxes.find(box => 
-            !box.completed && box.box.position.x > this.game.player.mesh.position.x
-        );
+    setupMobileInput() {
+        // Show keyboard when typing UI is tapped
+        document.getElementById('typing-ui').addEventListener('click', () => {
+            this.mobileInput.focus();
+        });
         
-        if (nextBox) {
-            this.targetLetter = nextBox.character;
-            this.currentBox = nextBox;
-            this.targetWordDisplay.textContent = this.targetLetter;
-            console.log('Next target letter:', this.targetLetter, 'Distance:', nextBox.distance);
-        }
+        // Handle mobile input
+        this.mobileInput.addEventListener('input', (event) => {
+            const key = event.target.value.slice(-1);
+            if (key) {
+                this.onKeyDown({ key: key });
+                this.mobileInput.value = '';
+            }
+        });
     }
 
-    onKeyDown(event) {
-        const typed = event.key.toUpperCase();
+    handleTyping(typed) {
         console.log('Typed:', typed, 'Target:', this.targetLetter);
         
         this.targetWordDisplay.textContent = typed;
@@ -78,6 +81,25 @@ export class TypingManager {
             // Optionally: Decrease score for wrong letters
             // this.game.score = Math.max(0, this.game.score - 50);  // Prevent negative scores
             // this.game.uiManager.updateScore(this.game.score);
+        }
+    }
+
+    onKeyDown(event) {
+        const typed = event.key.toUpperCase();
+        this.handleTyping(typed);
+    }
+
+    updateTargetLetter() {
+        // Find the first uncompleted box that hasn't been passed
+        const nextBox = this.game.boxes.find(box => 
+            !box.completed && box.box.position.x > this.game.player.mesh.position.x
+        );
+        
+        if (nextBox) {
+            this.targetLetter = nextBox.character;
+            this.currentBox = nextBox;
+            this.targetWordDisplay.textContent = this.targetLetter;
+            console.log('Next target letter:', this.targetLetter, 'Distance:', nextBox.distance);
         }
     }
 } 

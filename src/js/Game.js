@@ -36,21 +36,34 @@ export class Game {
         // Remove background properties from constructor
         this.backgrounds = null;
         this.backgroundLayers = null;
+        
+        // Add resize listener
+        window.addEventListener('resize', () => {
+            const newAspectRatio = window.innerWidth / window.innerHeight;
+            
+            // Update camera
+            this.camera.left = -10 * newAspectRatio;
+            this.camera.right = 10 * newAspectRatio;
+            this.camera.updateProjectionMatrix();
+            
+            // Update renderer
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     }
 
     init() {
         // Create scene
         this.scene = new THREE.Scene();
         
-        // Set up camera - use orthographic camera for a more 2D feel
+        // Set up camera
         const aspectRatio = window.innerWidth / window.innerHeight;
         this.camera = new THREE.OrthographicCamera(
-            -10 * aspectRatio, // left
-            10 * aspectRatio,  // right
-            10,                // top
-            -10,               // bottom
-            0.1,              // near
-            1000              // far
+            -10 * aspectRatio,
+            10 * aspectRatio,
+            10,
+            -10,
+            0.1,
+            1000
         );
         this.camera.position.set(0, 0, 10);
 
@@ -59,9 +72,6 @@ export class Game {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
 
-        // Remove the single background color
-        // this.renderer.setClearColor(0x5c94fc);
-        
         // Create background manager
         this.backgroundManager = new BackgroundManager(this.scene);
 

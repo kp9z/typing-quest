@@ -101,23 +101,6 @@ export class Player {
         // Position the player
         this.mesh.position.set(-5, -3, 0);
         this.scene.add(this.mesh);
-
-        // Set up keyboard controls
-        window.addEventListener('keydown', this.onKeyDown.bind(this));
-    }
-
-    onKeyDown(event) {
-        // Only handle space key and prevent jumping when typing
-        if (event.code === 'Space' && !this.isJumping && !this.game.isTypingCorrect) {
-            this.jump();
-        }
-    }
-
-    jump() {
-        if (!this.isJumping) {
-            this.isJumping = true;
-            this.jumpVelocity = this.jumpForce;
-        }
     }
 
     update() {
