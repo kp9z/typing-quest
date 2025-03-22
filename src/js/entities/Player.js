@@ -16,45 +16,90 @@ export class Player {
     }
 
     init() {
-        // Create a group for the player
         this.mesh = new THREE.Group();
 
-        // Create Mario's body parts using simple shapes
-        // Body (blue overalls)
+        // Body (blue overalls) - made shorter and slightly wider
         const body = new THREE.Mesh(
-            new THREE.PlaneGeometry(2, 2),
+            new THREE.BoxGeometry(1.8, 1.6, 1),
             new THREE.MeshBasicMaterial({ color: 0x0000ff })
         );
 
-        // Shirt (red)
+        // Shirt (red) - adjusted to match body
         const shirt = new THREE.Mesh(
-            new THREE.PlaneGeometry(2, 1),
+            new THREE.BoxGeometry(1.8, 0.8, 1),
             new THREE.MeshBasicMaterial({ color: 0xff0000 })
         );
-        shirt.position.y = 0.5;
+        shirt.position.y = 0.4;
 
-        // Head (skin tone)
+        // Head (skin tone) - made slightly larger relative to body
         const head = new THREE.Mesh(
-            new THREE.PlaneGeometry(1.2, 1.2),
+            new THREE.BoxGeometry(1.4, 1.4, 1.4),
             new THREE.MeshBasicMaterial({ color: 0xffd700 })
         );
-        head.position.y = 1.5;
+        head.position.y = 1.2;
 
-        // Cap (red)
-        const cap = new THREE.Mesh(
-            new THREE.PlaneGeometry(1.4, 0.7),
+        // Main cap part (red) - moved forward
+        const capTop = new THREE.Mesh(
+            new THREE.BoxGeometry(1.5, 0.5, 1.3),
             new THREE.MeshBasicMaterial({ color: 0xff0000 })
         );
-        cap.position.y = 2;
+        capTop.position.set(0, 1.7, 0.3); // Added Z offset
+
+        // Cap brim (red) - extended more forward
+        const capBrim = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8, 0.2, 1.6),
+            new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        );
+        capBrim.position.set(0, 1.5, 0.5); // Increased Z offset
+
+        // White circle for M logo - moved forward with the cap
+        const logo = new THREE.Mesh(
+            new THREE.CircleGeometry(0.25, 16),
+            new THREE.MeshBasicMaterial({ color: 0xffffff })
+        );
+        logo.position.set(0, 1.7, 0.96); // Adjusted to be on the front of cap
+        logo.rotation.x = -Math.PI * 0.1;
+
+        // Arms (red) - made shorter
+        const leftArm = new THREE.Mesh(
+            new THREE.BoxGeometry(0.4, 1, 0.4),
+            new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        );
+        leftArm.position.set(-1.1, 0.2, 0);
+        
+        const rightArm = new THREE.Mesh(
+            new THREE.BoxGeometry(0.4, 1, 0.4),
+            new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        );
+        rightArm.position.set(1.1, 0.2, 0);
+
+        // Legs (blue) - made shorter and slightly thicker
+        const leftLeg = new THREE.Mesh(
+            new THREE.BoxGeometry(0.6, 0.8, 0.6),
+            new THREE.MeshBasicMaterial({ color: 0x0000ff })
+        );
+        leftLeg.position.set(-0.5, -1.2, 0);
+
+        const rightLeg = new THREE.Mesh(
+            new THREE.BoxGeometry(0.6, 0.8, 0.6),
+            new THREE.MeshBasicMaterial({ color: 0x0000ff })
+        );
+        rightLeg.position.set(0.5, -1.2, 0);
 
         // Add all parts to the group
         this.mesh.add(body);
         this.mesh.add(shirt);
         this.mesh.add(head);
-        this.mesh.add(cap);
+        this.mesh.add(capTop);
+        this.mesh.add(capBrim);
+        this.mesh.add(logo);
+        this.mesh.add(leftArm);
+        this.mesh.add(rightArm);
+        this.mesh.add(leftLeg);
+        this.mesh.add(rightLeg);
 
         // Position the player
-        this.mesh.position.set(-5, -3, 0); // Start on the left side of screen
+        this.mesh.position.set(-5, -3, 0);
         this.scene.add(this.mesh);
 
         // Set up keyboard controls
