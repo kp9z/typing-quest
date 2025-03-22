@@ -145,11 +145,17 @@ export class Game {
             const oldLevel = this.level;
             this.level = shouldBeLevel;
             
+            // Update scene colors for new level
+            this.backgroundManager.changeSceneByLevel(this.level);
+            
             // Update letters based on level
             const letterSetIndex = Math.min(this.level - 1, this.letterSets.length - 1);
             
             // Make sure we're creating a new array
             this.possibleLetters = Array.from(this.letterSets[letterSetIndex]);
+            
+            // Increase scroll speed with each level
+            this.scrollSpeed = this.baseScrollSpeed * (1 + (this.level - 1) * 0.2);
             
             // Force-update next obstacle to use new letter set
             if (this.boxes.length > 0) {
@@ -175,12 +181,6 @@ export class Game {
                     this.boxes[lastIndex].character = newLetter;
                 }
             }
-            
-            // Increase speed with each level (cap at 2x initial speed)
-            this.scrollSpeed = Math.min(
-                this.baseScrollSpeed * (1 + (this.level - 1) * 0.2),
-                this.baseScrollSpeed * 2
-            );
             
             // Decrease spawn interval (minimum 1000ms)
             this.spawnInterval = Math.max(2000 - (this.level - 1) * 200, 1000);
