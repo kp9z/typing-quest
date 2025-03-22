@@ -11,7 +11,7 @@ export class Game {
         this.clock = new THREE.Clock();
         this.possibleLetters = ['F', 'J']; // Only F and J for first level
         this.boxes = []; // Store box and letter pairs
-        this.scrollSpeed = 0.02;
+        this.scrollSpeed = 0.03;
         this.isTypingCorrect = false;
         this.nextSpawnTime = 0;
         this.spawnInterval = 2000; // Time between spawns in milliseconds
