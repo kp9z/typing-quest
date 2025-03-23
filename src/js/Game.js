@@ -49,6 +49,22 @@ export class Game {
             // Update renderer
             this.renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        // Add keyboard event listener for desktop
+        document.addEventListener('keydown', (event) => {
+            const char = event.key.toUpperCase();
+            this.handleTyping(char);
+        });
+
+        // Add input event listener for mobile
+        const mobileInput = document.getElementById('mobile-input');
+        if (mobileInput) {
+            mobileInput.addEventListener('input', (event) => {
+                const char = event.data ? event.data.toUpperCase() : '';
+                this.handleTyping(char);
+                mobileInput.value = ''; // Clear the input after handling
+            });
+        }
     }
 
     init() {
@@ -259,6 +275,9 @@ export class Game {
                 
                 // Move player with scene
                 this.player.mesh.position.x -= this.scrollSpeed;
+            } else {
+                // Add this else block to move player forward when typing correctly
+                this.player.moveForward();
             }
 
             // Update last time for next frame
@@ -305,5 +324,20 @@ export class Game {
         
         // Show game over screen
         this.uiManager.showGameOver(this.score);
+    }
+
+    handleTyping(typedChar) {
+        if (this.boxes.length > 0) {
+            const nextBox = this.boxes[0];
+            if (typedChar === nextBox.character) {
+                this.isTypingCorrect = true;
+                // Optional: Add a small timeout to reset the flag
+                setTimeout(() => {
+                    this.isTypingCorrect = false;
+                }, 100);
+            } else {
+                this.isTypingCorrect = false;
+            }
+        }
     }
 } 
