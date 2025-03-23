@@ -51,49 +51,51 @@ export class TypingManager {
         this.targetWordDisplay.textContent = typed;
 
         if (typed === this.targetLetter && this.currentBox) {
-            console.log('Correct letter typed!');
-            this.game.isTypingCorrect = true;
-            this.targetWordDisplay.style.color = '#00ff00';
+            // Add distance check to ensure box is within reasonable range
+            const distanceToBox = this.currentBox.box.position.x - this.game.player.mesh.position.x;
             
-            // Increase score
-            this.game.score += 100;
-            this.game.uiManager.updateScore(this.game.score);
-            
-            // Call updateDifficulty after updating score
-            this.game.updateDifficulty();
-            
-            const targetX = this.currentBox.box.position.x;
-            const currentX = this.game.player.mesh.position.x;
-            const distance = targetX - currentX;
-            
-            this.currentBox.completed = true;
-
-            // Create animation loop for smooth movement
-            let progress = 0;
-            const moveInterval = setInterval(() => {
-                const moveStep = 0.1;
-                progress += moveStep;
+            // Only allow typing if box is within reasonable range (e.g., between 0 and 15 units)
+            if (distanceToBox > 0 && distanceToBox < 15) {
+                console.log('Correct letter typed!');
+                this.game.isTypingCorrect = true;
+                this.targetWordDisplay.style.color = '#00ff00';
                 
-                this.game.player.mesh.position.x += moveStep * distance;
+                // Increase score
+                this.game.score += 100;
+                this.game.uiManager.updateScore(this.game.score);
+                
+                // Call updateDifficulty after updating score
+                this.game.updateDifficulty();
+                
+                const targetX = this.currentBox.box.position.x;
+                const currentX = this.game.player.mesh.position.x;
+                const distance = targetX - currentX;
+                
+                this.currentBox.completed = true;
 
-                if (progress >= 1) {
-                    clearInterval(moveInterval);
-                    this.game.player.mesh.position.x = targetX;
+                // Create animation loop for smooth movement
+                let progress = 0;
+                const moveInterval = setInterval(() => {
+                    const moveStep = 0.1;
+                    progress += moveStep;
                     
-                    // Trigger jump and box breaking after reaching the position
-                    this.game.player.jumpAndBreak(this.currentBox);
-                    
-                    this.game.isTypingCorrect = false;
-                    this.targetWordDisplay.style.color = '#ffffff';
-                    this.updateTargetLetter();
-                }
-            }, 16);
-        } else {
-            this.targetWordDisplay.style.color = '#ff0000';
-            // Optionally: Decrease score for wrong letters
-            // this.game.score = Math.max(0, this.game.score - 50);  // Prevent negative scores
-            // this.game.uiManager.updateScore(this.game.score);
+                    this.game.player.mesh.position.x += moveStep * distance;
+
+                    if (progress >= 1) {
+                        clearInterval(moveInterval);
+                        this.game.player.mesh.position.x = targetX;
+                        
+                        // Trigger jump and box breaking after reaching the position
+                        this.game.player.jumpAndBreak(this.currentBox);
+                        
+                        this.game.isTypingCorrect = false;
+                        this.targetWordDisplay.style.color = '#ffffff';
+                        this.updateTargetLetter();
+                    }
+                }, 16);
+            }
         }
+        this.targetWordDisplay.style.color = '#ff0000';
     }
 
     onKeyDown(event) {
@@ -102,16 +104,24 @@ export class TypingManager {
     }
 
     updateTargetLetter() {
-        // Find the first uncompleted box that hasn't been passed
-        const nextBox = this.game.boxes.find(box => 
-            !box.completed && box.box.position.x > this.game.player.mesh.position.x
-        );
+        // Find the first uncompleted box that hasn't been passed and is within range
+        const nextBox = this.game.boxes.find(box => {
+            const distance = box.box.position.x - this.game.player.mesh.position.x;
+            return !box.completed && 
+                   distance > 0 && 
+                   distance < 15;
+        });
         
         if (nextBox) {
             this.targetLetter = nextBox.character;
             this.currentBox = nextBox;
             this.targetWordDisplay.textContent = this.targetLetter;
             console.log('Next target letter:', this.targetLetter, 'Distance:', nextBox.distance);
+        } else {
+            // No valid box found, clear the target
+            this.targetLetter = '';
+            this.currentBox = null;
+            this.targetWordDisplay.textContent = '';
         }
     }
 } 
