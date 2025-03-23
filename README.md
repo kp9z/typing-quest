@@ -2,6 +2,8 @@
 
 A unique 3D typing game that combines platforming with typing challenges. Navigate through a retro-inspired world while typing words to overcome obstacles and progress through levels.
 
+![image](https://github.com/user-attachments/assets/717d04ab-19c7-4613-8899-f49d2f576dbd)
+
 ## Features
 
 - 3D side-scrolling platformer gameplay
@@ -14,16 +16,13 @@ A unique 3D typing game that combines platforming with typing challenges. Naviga
 
 ## Controls
 
-- **Arrow Left/Right**: Move the character
-- **Space**: Jump
 - **Type the displayed word**: Complete typing challenges
-- **Enter**: Submit typed word
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/typing-quest.git
+git clone https://github.com/kp9z/typing-quest
 cd typing-quest
 ```
 
@@ -54,26 +53,6 @@ The game is built using:
 - Vite for development and building
 - Modern JavaScript (ES6+)
 
-## Project Structure
-
-```
-typing-quest/
-├── src/
-│   ├── js/
-│   │   ├── Game.js
-│   │   ├── Player.js
-│   │   ├── TypingManager.js
-│   │   ├── LevelManager.js
-│   │   └── UIManager.js
-│   ├── assets/
-│   │   ├── models/
-│   │   ├── textures/
-│   │   └── sounds/
-│   └── main.js
-├── index.html
-├── package.json
-└── README.md
-```
 
 ## Contributing
 
