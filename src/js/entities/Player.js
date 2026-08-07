@@ -5,305 +5,174 @@ export class Player {
         this.scene = scene;
         this.game = game;
         this.mesh = null;
-        this.position = new THREE.Vector3();
         this.isJumping = false;
         this.jumpVelocity = 0;
-        this.jumpForce = 0.4; // Increased for more satisfying jumps
-        this.gravity = -0.022; // Increased gravity for snappier falls
+        this.jumpForce = 0.4;
+        this.gravity = -0.022;
         this.forwardSpeed = 0.05;
-        
-        // New animation properties
-        this.squashStretch = {
-            normal: new THREE.Vector3(1, 1, 1),
-            jump: new THREE.Vector3(0.8, 1.2, 0.8),
-            land: new THREE.Vector3(1.2, 0.8, 1.2),
-            current: new THREE.Vector3(1, 1, 1)
-        };
         this.animationState = 'idle';
         this.walkCycle = 0;
-        
+        this.normalScale = new THREE.Vector3(1, 1, 1);
+        this.jumpScale = new THREE.Vector3(0.86, 1.14, 1);
+        this.landScale = new THREE.Vector3(1.12, 0.88, 1);
         this.init();
     }
 
     init() {
         this.mesh = new THREE.Group();
 
-        // Body (blue overalls) - made rounder and deeper for side view
-        const body = new THREE.Mesh(
-            new THREE.BoxGeometry(1.2, 1.6, 1.8),
-            new THREE.MeshBasicMaterial({ color: 0x0000ff })
-        );
-        body.position.z = 0;
+        const navy = new THREE.MeshBasicMaterial({ color: 0x172044 });
+        const teal = new THREE.MeshBasicMaterial({ color: 0x56d6c9 });
+        const cream = new THREE.MeshBasicMaterial({ color: 0xf8f5e7 });
+        const orange = new THREE.MeshBasicMaterial({ color: 0xff9b62 });
+        const pink = new THREE.MeshBasicMaterial({ color: 0xff709f });
 
-        // Shirt (red) - adjusted to be slightly larger and offset forward
-        const shirt = new THREE.Mesh(
-            new THREE.BoxGeometry(1.3, 0.8, 1.9), // Slightly larger than body
-            new THREE.MeshBasicMaterial({ color: 0xff0000 })
-        );
-        shirt.position.set(0, 0.4, 0.05); // Moved slightly forward in z-axis
+        const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.72, 1.15, 0.6), pink);
+        backpack.position.set(-0.62, 0.05, -0.04);
+        backpack.rotation.z = 0.08;
 
-        // Belly (blue overalls)
-        const belly = new THREE.Mesh(
-            new THREE.SphereGeometry(0.9, 8, 8),
-            new THREE.MeshBasicMaterial({ color: 0x0000ff })
-        );
-        belly.position.set(0, -0.2, 0.2);
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.58, 0.72, 6, 12), teal);
+        body.position.y = 0.05;
 
-        // Head (skin tone) - more oval for side view
-        const head = new THREE.Mesh(
-            new THREE.SphereGeometry(0.7, 16, 16),
-            new THREE.MeshBasicMaterial({ color: 0xffd700 })
-        );
-        head.position.y = 1.2;
-        head.scale.set(1, 1, 0.8); // Slightly squashed front-to-back
+        const chestBadge = new THREE.Mesh(new THREE.CircleGeometry(0.18, 20), cream);
+        chestBadge.position.set(0.38, 0.18, 0.49);
 
-        // Nose (skin tone) - characteristic Mario nose
-        const nose = new THREE.Mesh(
-            new THREE.SphereGeometry(0.25, 8, 8),
-            new THREE.MeshBasicMaterial({ color: 0xffd700 })
-        );
-        nose.position.set(0, 1.2, 0.7); // Positioned on face
-        nose.scale.set(0.8, 0.8, 1); // Elongated forward
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.64, 20, 16), cream);
+        head.position.y = 1.15;
+        head.scale.set(1, 0.9, 0.92);
 
-        // Main cap part (red)
-        const capTop = new THREE.Mesh(
-            new THREE.SphereGeometry(0.75, 16, 16),
-            new THREE.MeshBasicMaterial({ color: 0xff0000 })
-        );
-        capTop.position.set(0, 1.7, 0);
-        capTop.scale.set(1, 0.5, 1);
+        const visor = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.42, 4, 10), navy);
+        visor.position.set(0.42, 1.17, 0.43);
+        visor.rotation.z = Math.PI / 2;
+        visor.scale.z = 0.25;
 
-        // Cap brim (red)
-        const capBrim = new THREE.Mesh(
-            new THREE.BoxGeometry(1.2, 0.1, 0.8),
-            new THREE.MeshBasicMaterial({ color: 0xff0000 })
-        );
-        capBrim.position.set(0, 1.5, 0.7);
+        const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.42, 8), orange);
+        antenna.position.set(0, 1.86, 0);
+        const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), orange);
+        antennaTip.position.set(0, 2.08, 0);
 
-        // White circle for M logo
-        const logo = new THREE.Mesh(
-            new THREE.CircleGeometry(0.25, 16),
-            new THREE.MeshBasicMaterial({ color: 0xffffff })
-        );
-        logo.position.set(0, 1.6, 0.76);
-        logo.rotation.x = 0; // Flat against cap front
+        const leftArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.45, 4, 8), teal);
+        leftArm.position.set(-0.68, 0.18, 0);
+        leftArm.rotation.z = -0.25;
+        leftArm.name = 'leftArm';
 
-        // Arms (red) - shorter and rounder
-        const leftArm = new THREE.Mesh(
-            new THREE.CapsuleGeometry(0.2, 0.6, 4, 8),
-            new THREE.MeshBasicMaterial({ color: 0xff0000 })
-        );
-        leftArm.position.set(-0.8, 0.2, 0);
-        leftArm.rotation.z = -0.2;
-        
-        const rightArm = new THREE.Mesh(
-            new THREE.CapsuleGeometry(0.2, 0.6, 4, 8),
-            new THREE.MeshBasicMaterial({ color: 0xff0000 })
-        );
-        rightArm.position.set(0.8, 0.2, 0);
-        rightArm.rotation.z = 0.2;
+        const rightArm = leftArm.clone();
+        rightArm.position.x = 0.68;
+        rightArm.rotation.z = 0.25;
+        rightArm.name = 'rightArm';
 
-        // Legs (blue) - shorter and rounder
-        const leftLeg = new THREE.Mesh(
-            new THREE.CapsuleGeometry(0.3, 0.4, 4, 8),
-            new THREE.MeshBasicMaterial({ color: 0x0000ff })
-        );
-        leftLeg.position.set(-0.4, -1.2, 0);
+        const leftLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.38, 4, 8), navy);
+        leftLeg.position.set(-0.3, -0.9, 0);
         leftLeg.name = 'leftLeg';
 
-        const rightLeg = new THREE.Mesh(
-            new THREE.CapsuleGeometry(0.3, 0.4, 4, 8),
-            new THREE.MeshBasicMaterial({ color: 0x0000ff })
-        );
-        rightLeg.position.set(0.4, -1.2, 0);
+        const rightLeg = leftLeg.clone();
+        rightLeg.position.x = 0.3;
         rightLeg.name = 'rightLeg';
 
-        // Add all parts to the group
-        this.mesh.add(body);
-        this.mesh.add(belly);
-        this.mesh.add(shirt);
-        this.mesh.add(head);
-        this.mesh.add(nose);
-        this.mesh.add(capTop);
-        this.mesh.add(capBrim);
-        this.mesh.add(logo);
-        this.mesh.add(leftArm);
-        this.mesh.add(rightArm);
-        this.mesh.add(leftLeg);
-        this.mesh.add(rightLeg);
-
-        // Position the player and rotate for side view
+        this.mesh.add(backpack, body, chestBadge, head, visor, antenna, antennaTip, leftArm, rightArm, leftLeg, rightLeg);
         this.mesh.position.set(-5, -3, 0);
-        this.mesh.rotation.y = Math.PI / 2; // Rotate 90 degrees to face right
         this.scene.add(this.mesh);
     }
 
     update() {
-        const deltaTime = 1/60; // Assuming 60fps
-
         if (this.isJumping) {
-            // Apply gravity with proper time-based physics
-            this.jumpVelocity += this.gravity * deltaTime * 60;
+            this.jumpVelocity += this.gravity;
             this.mesh.position.y += this.jumpVelocity;
-
-            // Squash and stretch during jump
-            if (this.jumpVelocity > 0) {
-                this.animateSquashStretch(this.squashStretch.jump, 0.15);
-            } else {
-                this.animateSquashStretch(this.squashStretch.normal, 0.15);
-            }
-
-            // Ground collision with bounce recovery
+            this.mesh.scale.lerp(this.jumpVelocity > 0 ? this.jumpScale : this.normalScale, 0.16);
             if (this.mesh.position.y <= -3) {
                 this.mesh.position.y = -3;
                 this.isJumping = false;
                 this.jumpVelocity = 0;
                 this.animationState = 'landing';
-                this.animateSquashStretch(this.squashStretch.land, 0.1);
+                this.mesh.scale.lerp(this.landScale, 0.3);
             }
-        } else {
-            // Idle animation with improved bounce and leg movement
-            if (this.animationState === 'idle') {
-                const bounceHeight = Math.sin(Date.now() * 0.003) * 0.1;
-                this.mesh.position.y = -3 + bounceHeight;
-                
-                // Subtle body rotation
-                this.mesh.rotation.z = Math.sin(Date.now() * 0.002) * 0.02;
-                
-                // Animate legs opposite to the bounce
-                this.mesh.children.forEach(child => {
-                    if (child.name === 'leftLeg' || child.name === 'rightLeg') {
-                        child.position.y = -1.2 + bounceHeight * 0.3;
-                    }
-                });
-            }
+        } else if (this.animationState === 'idle') {
+            const bounce = Math.sin(performance.now() * 0.004) * 0.06;
+            this.mesh.position.y = -3 + bounce;
+            this.mesh.rotation.z = Math.sin(performance.now() * 0.002) * 0.015;
         }
 
-        // Recovery from landing squash
         if (this.animationState === 'landing') {
-            this.animateSquashStretch(this.squashStretch.normal, 0.2);
-            if (this.mesh.scale.distanceTo(this.squashStretch.normal) < 0.05) {
-                this.animationState = 'idle';
-            }
+            this.mesh.scale.lerp(this.normalScale, 0.2);
+            if (this.mesh.scale.distanceTo(this.normalScale) < 0.025) this.animationState = 'idle';
         }
-    }
-
-    // New helper method for squash and stretch
-    animateSquashStretch(targetScale, speed) {
-        this.mesh.scale.lerp(targetScale, speed);
     }
 
     moveForward() {
         this.mesh.position.x += this.forwardSpeed;
-        
-        // Add running animation
-        this.walkCycle += 0.2;
-        const legAngle = Math.sin(this.walkCycle) * 0.3;
-        
-        this.mesh.children.forEach(child => {
-            if (child.name === 'leftLeg') {
-                child.rotation.x = legAngle;
-            } else if (child.name === 'rightLeg') {
-                child.rotation.x = -legAngle;
-            }
+        this.walkCycle += 0.22;
+        const swing = Math.sin(this.walkCycle) * 0.35;
+        this.mesh.children.forEach((child) => {
+            if (child.name === 'leftLeg' || child.name === 'rightArm') child.rotation.x = swing;
+            if (child.name === 'rightLeg' || child.name === 'leftArm') child.rotation.x = -swing;
         });
-        
-        // Slight tilt while running
-        this.mesh.rotation.z = -0.1;
+        this.mesh.rotation.z = -0.06;
     }
 
     jumpAndBreak(box) {
         this.isJumping = true;
-        this.jumpVelocity = this.jumpForce * 1.5; // Higher jump for breaking
-        
-        // Create breaking animation
-        const breakingAnimation = () => {
-            // Scale down the box and letter
-            box.box.scale.x *= 0.9;
-            box.box.scale.y *= 0.9;
-            box.letter.scale.x *= 0.9;
-            box.letter.scale.y *= 0.9;
-            
-            // Move pieces upward and outward
-            box.box.position.y += 0.1;
-            box.letter.position.y += 0.1;
-            
-            // Rotate for effect
-            box.box.rotation.z += 0.1;
-            box.letter.rotation.z += 0.1;
-            
-            // Check if animation should continue
-            if (box.box.scale.x > 0.1) {
-                requestAnimationFrame(breakingAnimation);
-            } else {
-                // Remove the box and letter from scene
-                this.scene.remove(box.box);
-                this.scene.remove(box.letter);
-                
-                // Remove from game's boxes array
-                const index = this.game.boxes.indexOf(box);
-                if (index > -1) {
-                    this.game.boxes.splice(index, 1);
-                }
+        this.animationState = 'jumping';
+        this.jumpVelocity = this.jumpForce * 1.5;
+        this.createBreakParticles(box.box.position.clone());
+
+        const breakBlock = () => {
+            box.box.scale.multiplyScalar(0.84);
+            box.letter.scale.multiplyScalar(0.84);
+            box.box.rotation.z += 0.13;
+            box.letter.rotation.z += 0.13;
+            if (box.box.scale.x > 0.08) {
+                requestAnimationFrame(breakBlock);
+                return;
             }
+            this.scene.remove(box.box, box.letter);
+            box.box.geometry.dispose();
+            box.box.material.dispose();
+            box.letter.geometry.dispose();
+            box.letter.material.map?.dispose();
+            box.letter.material.dispose();
+            const index = this.game.boxes.indexOf(box);
+            if (index >= 0) this.game.boxes.splice(index, 1);
+            this.game.typingManager.updateTargetLetter();
         };
-        
-        // Start the breaking animation
-        breakingAnimation();
-        
-        // Add particle effect
-        this.createBreakParticles(box.box.position);
+        breakBlock();
     }
 
     createBreakParticles(position) {
-        const particleCount = 20;
         const particles = new THREE.Group();
-        
-        for (let i = 0; i < particleCount; i++) {
+        for (let i = 0; i < 14; i += 1) {
             const particle = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.2, 0.2),
-                new THREE.MeshBasicMaterial({ color: 0xcd853f })
+                new THREE.PlaneGeometry(0.18, 0.18),
+                new THREE.MeshBasicMaterial({ color: i % 2 ? 0xff9b62 : 0xc9f27b })
             );
-            
-            // Random initial position near the box
-            particle.position.set(
-                position.x + (Math.random() - 0.5) * 0.5,
-                position.y + (Math.random() - 0.5) * 0.5,
-                position.z
-            );
-            
-            // Random velocity
+            particle.position.copy(position);
             particle.userData.velocity = {
-                x: (Math.random() - 0.5) * 0.2,
-                y: Math.random() * 0.2,
-                z: (Math.random() - 0.5) * 0.2
+                x: (Math.random() - 0.5) * 0.24,
+                y: 0.08 + Math.random() * 0.2,
             };
-            
             particles.add(particle);
         }
-        
         this.scene.add(particles);
-        
-        // Animate particles
+
         const animateParticles = () => {
-            let allGone = true;
-            particles.children.forEach(particle => {
+            let visible = false;
+            particles.children.forEach((particle) => {
                 particle.position.x += particle.userData.velocity.x;
                 particle.position.y += particle.userData.velocity.y;
-                particle.userData.velocity.y -= 0.01; // Gravity
-                particle.rotation.z += 0.1;
-                particle.scale.multiplyScalar(0.95);
-                
-                if (particle.scale.x > 0.01) allGone = false;
+                particle.userData.velocity.y -= 0.012;
+                particle.rotation.z += 0.12;
+                particle.scale.multiplyScalar(0.93);
+                if (particle.scale.x > 0.02) visible = true;
             });
-            
-            if (!allGone) {
+            if (visible) {
                 requestAnimationFrame(animateParticles);
-            } else {
-                this.scene.remove(particles);
+                return;
             }
+            particles.children.forEach((particle) => {
+                particle.geometry.dispose();
+                particle.material.dispose();
+            });
+            this.scene.remove(particles);
         };
-        
         animateParticles();
     }
-} 
+}

@@ -10,7 +10,6 @@ export class Game {
         this.scene = null;
         this.camera = null;
         this.renderer = null;
-        this.clock = new THREE.Clock();
         this.possibleLetters = ['F', 'J']; // Starting letters
         this.boxes = [];
         this.scrollSpeed = 0.03; // Initial speed
@@ -21,6 +20,7 @@ export class Game {
         this.score = 0;
         this.uiManager = new UIManager();
         this.isGameOver = false;
+        this.hasStarted = false;
         
         // Add new properties for difficulty scaling
         this.level = 1;
@@ -61,7 +61,8 @@ export class Game {
         this.camera.lookAt(0, 0, 0); // Changed from (0, 2, 0) to (0, 0, 0) for better centering
 
         // Set up renderer
-        this.renderer = new THREE.WebGLRenderer();
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
@@ -69,20 +70,13 @@ export class Game {
         // Create background manager
         this.backgroundManager = new BackgroundManager(this.scene);
 
-        // Create ground (brown platform)
-        const groundGeometry = new THREE.PlaneGeometry(50, 4);
-        const groundMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0x8b4513  // Saddle brown color
-        });
-        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        ground.position.y = -5;
-        this.scene.add(ground);
 
         // Create player with game reference
         this.player = new Player(this.scene, this);
         
         // Add typing manager
         this.typingManager = new TypingManager(this);
+        this.uiManager.bindStart(() => this.start());
 
         // Start animation loop
         this.animate();
@@ -96,7 +90,7 @@ export class Game {
         
         // Create box
         const boxGeometry = new THREE.PlaneGeometry(2, 2);
-        const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xcd853f });
+        const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x172044 });
         const box = new THREE.Mesh(boxGeometry, boxMaterial);
         
         // Generate fixed distance between obstacles
@@ -105,18 +99,18 @@ export class Game {
         // Position box relative to the last box or starting position
         const lastBox = this.boxes[this.boxes.length - 1];
         const startX = lastBox ? lastBox.box.position.x + distance : 10; // Start closer
-        box.position.set(startX, 2, 0);
+        box.position.set(startX, -1.8, 0);
 
         // Create letter
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        canvas.width = 64;
-        canvas.height = 64;
-        context.fillStyle = 'white';
-        context.font = 'bold 48px Arial';
+        canvas.width = 128;
+        canvas.height = 128;
+        context.fillStyle = '#c9f27b';
+        context.font = '900 82px ui-monospace, monospace';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText(letter, 32, 32);
+        context.fillText(letter, 64, 66);
 
         const texture = new THREE.CanvasTexture(canvas);
         const letterGeometry = new THREE.PlaneGeometry(1, 1);
@@ -170,13 +164,13 @@ export class Game {
                     // Update the letter text
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
-                    canvas.width = 64;
-                    canvas.height = 64;
-                    context.fillStyle = 'white';
-                    context.font = 'bold 48px Arial';
+                    canvas.width = 128;
+                    canvas.height = 128;
+                    context.fillStyle = '#c9f27b';
+                    context.font = '900 82px ui-monospace, monospace';
                     context.textAlign = 'center';
                     context.textBaseline = 'middle';
-                    context.fillText(newLetter, 32, 32);
+                    context.fillText(newLetter, 64, 66);
                     
                     const texture = new THREE.CanvasTexture(canvas);
                     this.boxes[lastIndex].letter.material.map = texture;
@@ -198,6 +192,10 @@ export class Game {
 
     animate() {
         this.animationFrameId = requestAnimationFrame(this.animate.bind(this));
+        if (!this.hasStarted || document.hidden) {
+            this.renderer.render(this.scene, this.camera);
+            return;
+        }
         const currentTime = Date.now();
 
         // Check if it's time to spawn a new obstacle
@@ -224,7 +222,7 @@ export class Game {
                 this.boxes.forEach(box => {
                     box.box.position.x -= this.scrollSpeed;
                     box.letter.position.x -= this.scrollSpeed;
-                    box.box.position.y = 2 + Math.sin(Date.now() * 0.002) * 0.1;
+                    box.box.position.y = -1.8 + Math.sin(Date.now() * 0.002) * 0.08;
                     box.letter.position.y = box.box.position.y;
                 });
                 
@@ -277,6 +275,14 @@ export class Game {
         
         // Show game over screen
         this.uiManager.showGameOver(this.score);
+    }
+
+    start() {
+        if (this.hasStarted) return;
+        this.hasStarted = true;
+        this.lastTime = Date.now();
+        this.nextSpawnTime = 0;
+        this.typingManager.focusInput();
     }
 
     handleResize() {

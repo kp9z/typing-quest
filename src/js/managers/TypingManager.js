@@ -40,7 +40,7 @@ export class TypingManager {
   }
 
   handleTyping(typed) {
-    if (!typed || !this.currentBox || this.isResolving || this.game.isGameOver) return;
+    if (!this.game.hasStarted || !typed || !this.currentBox || this.isResolving || this.game.isGameOver) return;
 
     if (typed !== this.targetLetter) {
       this.game.uiManager.showTypingFeedback('miss', typed);
@@ -49,7 +49,7 @@ export class TypingManager {
 
     const target = this.currentBox;
     const distance = target.box.position.x - this.game.player.mesh.position.x;
-    if (distance <= 0 || distance >= 15) {
+    if (distance <= 0 || distance > 15.1) {
       this.updateTargetLetter();
       return;
     }
@@ -64,19 +64,26 @@ export class TypingManager {
 
     const startX = this.game.player.mesh.position.x;
     const targetX = target.box.position.x;
+    const advance = targetX - startX;
+    const dashX = Math.min(targetX, startX + 3.2);
     const startedAt = performance.now();
     const duration = 260;
 
     const move = (now) => {
       const progress = Math.min((now - startedAt) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      this.game.player.mesh.position.x = startX + (targetX - startX) * eased;
+      this.game.player.mesh.position.x = startX + (dashX - startX) * eased;
 
       if (progress < 1) {
         requestAnimationFrame(move);
         return;
       }
 
+      this.game.boxes.forEach(({ box, letter }) => {
+        box.position.x -= advance;
+        letter.position.x -= advance;
+      });
+      this.game.player.mesh.position.x = startX;
       this.game.player.jumpAndBreak(target);
       this.game.isTypingCorrect = false;
       this.isResolving = false;

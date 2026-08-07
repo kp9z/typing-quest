@@ -19,9 +19,9 @@ export function lettersForLevel(level) {
   return [...LETTER_SETS[index]];
 }
 
-export function findNextTarget(boxes, playerX, maxDistance = 15) {
+export function findNextTarget(boxes, playerX, maxDistance = 15.1) {
   return boxes.find(({ box, completed }) => {
     const distance = box.position.x - playerX;
-    return !completed && distance > 0 && distance < maxDistance;
+    return !completed && distance > 0 && distance <= maxDistance;
   }) ?? null;
 }

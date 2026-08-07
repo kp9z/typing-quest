@@ -35,6 +35,7 @@ test('selects the nearest eligible target in queue order', () => {
     { completed: false, box: { position: { x: 8 } } },
     { completed: false, box: { position: { x: 22 } } },
   ];
+  assert.equal(findNextTarget(boxes, -7), boxes[1]);
   assert.equal(findNextTarget(boxes, 0), boxes[1]);
   assert.equal(findNextTarget(boxes, 8), boxes[2]);
   assert.equal(findNextTarget(boxes, 10), boxes[2]);
