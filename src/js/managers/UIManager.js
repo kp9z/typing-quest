@@ -1,14 +1,41 @@
 export class UIManager {
     constructor() {
         this.scoreElement = document.getElementById('score');
+        this.levelElement = document.getElementById('level');
         this.targetWordElement = document.getElementById('target-word');
-        this.inputField = document.getElementById('input-field');
+        this.promptElement = document.getElementById('typing-prompt');
         this.combo = 0;
         this.comboTimeout = null;
     }
 
     updateScore(score) {
-        this.scoreElement.textContent = `Score: ${Math.floor(score)}`;
+        this.scoreElement.textContent = Math.floor(score).toString().padStart(4, '0');
+    }
+
+    updateLevel(level) {
+        if (this.levelElement) this.levelElement.textContent = String(level);
+    }
+
+    setTarget(letter) {
+        this.targetWordElement.textContent = letter || '·';
+        this.targetWordElement.setAttribute('aria-label', letter ? `Type ${letter}` : 'Waiting for next letter');
+        if (this.promptElement) {
+            this.promptElement.textContent = letter ? 'Type the next key' : 'Scanning the trail…';
+        }
+    }
+
+    showTypingFeedback(type, typed) {
+        const panel = document.getElementById('typing-ui');
+        if (!panel) return;
+        panel.dataset.feedback = type;
+        if (this.promptElement) {
+            this.promptElement.textContent = type === 'hit' ? 'Perfect hit' : `${typed} missed · try again`;
+        }
+        window.clearTimeout(this.feedbackTimeout);
+        this.feedbackTimeout = window.setTimeout(() => {
+            delete panel.dataset.feedback;
+            if (this.promptElement) this.promptElement.textContent = 'Type the next key';
+        }, 360);
     }
 
     updateCombo(combo) {

@@ -3,6 +3,7 @@ import { Player } from './entities/Player.js';
 import { TypingManager } from './managers/TypingManager.js';
 import { UIManager } from './managers/UIManager.js';
 import { BackgroundManager } from './managers/BackgroundManager.js';
+import { LETTER_SETS, lettersForLevel, levelForScore } from './gameRules.js';
 
 export class Game {
     constructor() {
@@ -25,46 +26,13 @@ export class Game {
         this.level = 1;
         this.blocksPassedInLevel = 0;
         this.baseScrollSpeed = 0.03;
-        this.letterSets = [
-            ['F', 'J'],                         // Level 1
-            ['F', 'J', 'D', 'K'],              // Level 2
-            ['F', 'J', 'D', 'K', 'S', 'L'],    // Level 3
-            ['F', 'J', 'D', 'K', 'S', 'L', 'A', ';'], // Level 4
-            // Add more letter combinations for higher levels
-        ];
+        this.letterSets = LETTER_SETS;
         
         // Remove background properties from constructor
         this.backgrounds = null;
         this.backgroundLayers = null;
         
-        // Add resize listener
-        window.addEventListener('resize', () => {
-            const newAspectRatio = window.innerWidth / window.innerHeight;
-            
-            // Update camera
-            this.camera.left = -10 * newAspectRatio;
-            this.camera.right = 10 * newAspectRatio;
-            this.camera.updateProjectionMatrix();
-            
-            // Update renderer
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Add keyboard event listener for desktop
-        document.addEventListener('keydown', (event) => {
-            const char = event.key.toUpperCase();
-            this.handleTyping(char);
-        });
-
-        // Add input event listener for mobile
-        const mobileInput = document.getElementById('mobile-input');
-        if (mobileInput) {
-            mobileInput.addEventListener('input', (event) => {
-                const char = event.data ? event.data.toUpperCase() : '';
-                this.handleTyping(char);
-                mobileInput.value = ''; // Clear the input after handling
-            });
-        }
+        this.handleResize = this.handleResize.bind(this);
     }
 
     init() {
@@ -94,6 +62,7 @@ export class Game {
 
         // Set up renderer
         this.renderer = new THREE.WebGLRenderer();
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
 
@@ -118,19 +87,7 @@ export class Game {
         // Start animation loop
         this.animate();
 
-        // Update resize handler
-        window.addEventListener('resize', () => {
-            const newAspectRatio = window.innerWidth / window.innerHeight;
-            const newSize = newAspectRatio < 1 ? 25 : 10; // Updated to match new portrait size
-            
-            this.camera.left = -newSize * newAspectRatio;
-            this.camera.right = newSize * newAspectRatio;
-            this.camera.top = newSize;
-            this.camera.bottom = -newSize;
-            this.camera.updateProjectionMatrix();
-            
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        window.addEventListener('resize', this.handleResize);
     }
 
     createNewObstacle() {
@@ -187,7 +144,7 @@ export class Game {
 
     updateDifficulty() {
         // Calculate what level we should be at based on score
-        const shouldBeLevel = Math.floor(this.score / 500) + 1;
+        const shouldBeLevel = levelForScore(this.score);
         
         // If we should level up
         if (shouldBeLevel > this.level) {
@@ -198,10 +155,7 @@ export class Game {
             this.backgroundManager.changeSceneByLevel(this.level);
             
             // Update letters based on level
-            const letterSetIndex = Math.min(this.level - 1, this.letterSets.length - 1);
-            
-            // Make sure we're creating a new array
-            this.possibleLetters = Array.from(this.letterSets[letterSetIndex]);
+            this.possibleLetters = lettersForLevel(this.level);
             
             // Increase scroll speed with each level
             this.scrollSpeed = this.baseScrollSpeed * (1 + (this.level - 1) * 0.2);
@@ -233,6 +187,7 @@ export class Game {
             
             // Decrease spawn interval (minimum 1000ms)
             this.spawnInterval = Math.max(2000 - (this.level - 1) * 200, 1000);
+            this.uiManager.updateLevel(this.level);
             
             // Notify player of level increase
             console.log(`Level up from ${oldLevel} to ${this.level}! Score: ${this.score}`);
@@ -317,27 +272,29 @@ export class Game {
         // Stop the animation loop
         cancelAnimationFrame(this.animationFrameId);
         
-        // Clean up event listeners
-        if (this.typingManager) {
-            window.removeEventListener('keydown', this.typingManager.onKeyDown.bind(this.typingManager));
-        }
+        this.typingManager?.destroy();
+        window.removeEventListener('resize', this.handleResize);
         
         // Show game over screen
         this.uiManager.showGameOver(this.score);
     }
 
+    handleResize() {
+        if (!this.camera || !this.renderer) return;
+        const aspectRatio = window.innerWidth / window.innerHeight;
+        const size = aspectRatio < 1 ? 25 : 10;
+        this.camera.left = -size * aspectRatio;
+        this.camera.right = size * aspectRatio;
+        this.camera.top = size;
+        this.camera.bottom = -size;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
     handleTyping(typedChar) {
-        if (this.boxes.length > 0) {
-            const nextBox = this.boxes[0];
-            if (typedChar === nextBox.character) {
-                this.isTypingCorrect = true;
-                // Optional: Add a small timeout to reset the flag
-                setTimeout(() => {
-                    this.isTypingCorrect = false;
-                }, 100);
-            } else {
-                this.isTypingCorrect = false;
-            }
+        if (this.typingManager) {
+            this.typingManager.handleTyping(typedChar);
         }
     }
 } 

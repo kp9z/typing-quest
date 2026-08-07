@@ -2,12 +2,13 @@
   "name": "typing-quest",
   "version": "1.0.0",
   "description": "A retro 3D typing adventure game built with Three.js",
-  "main": "src/index.js",
+  "type": "module",
   "scripts": {
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "npm audit --audit-level=moderate && npm run build"
+    "test": "node --test",
+    "check": "npm audit --audit-level=moderate && npm test && npm run build"
   },
   "dependencies": {
     "three": "^0.185.1"
