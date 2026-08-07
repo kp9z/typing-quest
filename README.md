@@ -2,6 +2,8 @@
 
 A tiny 3D arcade game for practicing home-row reflexes. Type the letter on the next block to dash forward, break it, and unlock a wider set of keys as your score climbs.
 
+![TypeQuest gameplay](docs/typequest-preview.png)
+
 ## Play
 
 ```bash

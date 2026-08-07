@@ -57,8 +57,8 @@ export class BackgroundManager {
     createGround() {
         const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x25264f });
         this.materials.ground = groundMaterial;
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 7), groundMaterial);
-        ground.position.set(0, -5.4, -4);
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 50), groundMaterial);
+        ground.position.set(0, -27.85, -4);
         this.scene.add(ground);
 
         const trailMaterial = new THREE.MeshBasicMaterial({ color: 0xff9b62 });
