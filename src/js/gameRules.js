@@ -25,3 +25,7 @@ export function findNextTarget(boxes, playerX, maxDistance = 15.1) {
     return !completed && distance > 0 && distance <= maxDistance;
   }) ?? null;
 }
+
+export function cameraXForRunner(playerX, startCameraX, startScreenX, visibleAdvance = 3.2) {
+  return Math.max(startCameraX, playerX - (startScreenX + visibleAdvance));
+}

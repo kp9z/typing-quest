@@ -3,6 +3,8 @@ import * as THREE from 'three';
 export class BackgroundManager {
     constructor(scene) {
         this.scene = scene;
+        this.root = new THREE.Group();
+        this.scene.add(this.root);
         this.clouds = [];
         this.materials = {};
         this.scenePresets = [
@@ -24,14 +26,14 @@ export class BackgroundManager {
         this.materials.sky = skyMaterial;
         const sky = new THREE.Mesh(new THREE.PlaneGeometry(120, 32), skyMaterial);
         sky.position.set(0, 2, -9);
-        this.scene.add(sky);
+        this.root.add(sky);
 
         const sun = new THREE.Mesh(
             new THREE.CircleGeometry(3.2, 48),
             new THREE.MeshBasicMaterial({ color: 0xffd98a })
         );
         sun.position.set(11, 5.5, -7.5);
-        this.scene.add(sun);
+        this.root.add(sun);
 
         const halo = new THREE.Mesh(
             new THREE.RingGeometry(3.8, 4, 48),
@@ -39,7 +41,7 @@ export class BackgroundManager {
         );
         halo.position.copy(sun.position);
         halo.position.z = -7.6;
-        this.scene.add(halo);
+        this.root.add(halo);
     }
 
     createHills() {
@@ -50,7 +52,7 @@ export class BackgroundManager {
             hill.rotation.z = Math.PI;
             hill.position.set(x, -1.6, -6.5);
             hill.scale.y = 0.55;
-            this.scene.add(hill);
+            this.root.add(hill);
         });
     }
 
@@ -59,13 +61,13 @@ export class BackgroundManager {
         this.materials.ground = groundMaterial;
         const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 50), groundMaterial);
         ground.position.set(0, -27.85, -4);
-        this.scene.add(ground);
+        this.root.add(ground);
 
         const trailMaterial = new THREE.MeshBasicMaterial({ color: 0xff9b62 });
         this.materials.trail = trailMaterial;
         const trail = new THREE.Mesh(new THREE.PlaneGeometry(120, 0.13), trailMaterial);
         trail.position.set(0, -2.85, -2.9);
-        this.scene.add(trail);
+        this.root.add(trail);
 
         for (let x = -55; x < 60; x += 5) {
             const dash = new THREE.Mesh(
@@ -73,7 +75,7 @@ export class BackgroundManager {
                 new THREE.MeshBasicMaterial({ color: 0xf8f5e7, transparent: true, opacity: 0.18 })
             );
             dash.position.set(x, -4.25, -2.8);
-            this.scene.add(dash);
+            this.root.add(dash);
         }
     }
 
@@ -91,12 +93,13 @@ export class BackgroundManager {
                 cloud.add(puff);
             });
             cloud.position.set(x, 4 + (index % 2) * 2.2, -5.6);
-            this.scene.add(cloud);
+            this.root.add(cloud);
             this.clouds.push({ mesh: cloud, speed: 0.008 + index * 0.002 });
         });
     }
 
-    update() {
+    update(cameraX = 0) {
+        this.root.position.x = cameraX;
         this.clouds.forEach((cloud) => {
             cloud.mesh.position.x -= cloud.speed;
             if (cloud.mesh.position.x < -35) cloud.mesh.position.x = 35;

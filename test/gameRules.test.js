@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  cameraXForRunner,
   findNextTarget,
   lettersForLevel,
   levelForScore,
@@ -39,4 +40,10 @@ test('selects the nearest eligible target in queue order', () => {
   assert.equal(findNextTarget(boxes, 0), boxes[1]);
   assert.equal(findNextTarget(boxes, 8), boxes[2]);
   assert.equal(findNextTarget(boxes, 10), boxes[2]);
+});
+
+test('camera follows only after the runner advances visibly', () => {
+  assert.equal(cameraXForRunner(-3, 0, -5), 0);
+  assert.equal(cameraXForRunner(2, 0, -5), 3.8);
+  assert.ok(Math.abs(2 - cameraXForRunner(2, 0, -5) + 1.8) < 1e-9);
 });

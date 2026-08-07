@@ -100,6 +100,10 @@ export class Player {
 
     moveForward() {
         this.mesh.position.x += this.forwardSpeed;
+        this.animateRun();
+    }
+
+    animateRun() {
         this.walkCycle += 0.22;
         const swing = Math.sin(this.walkCycle) * 0.35;
         this.mesh.children.forEach((child) => {

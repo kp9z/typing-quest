@@ -207,14 +207,10 @@ export class Game {
         if (this.player) {
             this.player.update();
             
-            // Calculate the effective position considering scene movement
-            const effectivePosition = this.player.mesh.position.x + 
-                (Date.now() - this.lastTime) * this.scrollSpeed;
-            
-            // Check if player has fallen too far behind
-            if (effectivePosition < -15) {  // Adjusted threshold
+            const screenPosition = this.player.mesh.position.x - this.camera.position.x;
+            if (screenPosition < -15) {
                 this.gameOver();
-                return;  // Stop animation loop
+                return;
             }
             
             if (!this.isTypingCorrect) {
@@ -228,9 +224,6 @@ export class Game {
                 
                 // Move player with scene
                 this.player.mesh.position.x -= this.scrollSpeed;
-            } else {
-                // Add this else block to move player forward when typing correctly
-                this.player.moveForward();
             }
 
             // Update last time for next frame
@@ -247,7 +240,7 @@ export class Game {
             }
             
             // Remove boxes that are far behind
-            if (box.box.position.x < -20) {
+            if (box.box.position.x - this.camera.position.x < -20) {
                 this.scene.remove(box.box);
                 this.scene.remove(box.letter);
                 return false;
@@ -256,7 +249,7 @@ export class Game {
         });
 
         // Update background positions
-        this.backgroundManager.update();
+        this.backgroundManager.update(this.camera.position.x);
 
         this.renderer.render(this.scene, this.camera);
     }

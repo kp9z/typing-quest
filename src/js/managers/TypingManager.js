@@ -1,4 +1,4 @@
-import { findNextTarget, normalizeTypedKey } from '../gameRules.js';
+import { cameraXForRunner, findNextTarget, normalizeTypedKey } from '../gameRules.js';
 
 export class TypingManager {
   constructor(game) {
@@ -64,26 +64,25 @@ export class TypingManager {
 
     const startX = this.game.player.mesh.position.x;
     const targetX = target.box.position.x;
-    const advance = targetX - startX;
-    const dashX = Math.min(targetX, startX + 3.2);
+    const startCameraX = this.game.camera.position.x;
+    const startScreenX = startX - startCameraX;
     const startedAt = performance.now();
-    const duration = 260;
+    const duration = 420;
 
     const move = (now) => {
       const progress = Math.min((now - startedAt) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      this.game.player.mesh.position.x = startX + (dashX - startX) * eased;
+      const playerX = startX + (targetX - startX) * eased;
+      this.game.player.mesh.position.x = playerX;
+      this.game.player.animateRun();
+      this.game.camera.position.x = cameraXForRunner(playerX, startCameraX, startScreenX);
 
       if (progress < 1) {
         requestAnimationFrame(move);
         return;
       }
 
-      this.game.boxes.forEach(({ box, letter }) => {
-        box.position.x -= advance;
-        letter.position.x -= advance;
-      });
-      this.game.player.mesh.position.x = startX;
+      this.game.player.mesh.position.x = targetX;
       this.game.player.jumpAndBreak(target);
       this.game.isTypingCorrect = false;
       this.isResolving = false;
