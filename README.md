@@ -1,63 +1,43 @@
-# TypeQuest: The Retro 3D Typing Adventure
+# TypeQuest
 
-A unique 3D typing game that combines platforming with typing challenges. Navigate through a retro-inspired world while typing words to overcome obstacles and progress through levels.
+A tiny 3D arcade game for practicing home-row reflexes. Type the letter on the next block to dash forward, break it, and unlock a wider set of keys as your score climbs.
 
-![image](https://github.com/user-attachments/assets/717d04ab-19c7-4613-8899-f49d2f576dbd)
+## Play
 
-## Features
-
-- 3D side-scrolling platformer gameplay
-- Real-time typing challenges
-- Dynamic word generation and validation
-- Combo system for consecutive correct typing
-- Multiple levels with increasing difficulty
-- Particle effects and visual feedback
-- Retro-inspired graphics and UI
-
-## Controls
-
-- **Type the displayed word**: Complete typing challenges
-
-## Installation
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/kp9z/typing-quest
-cd typing-quest
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the development server:
-```bash
+npm ci
 npm start
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+Open `http://localhost:5173`, select **Start quest**, then type the highlighted key. On phones and tablets, tap the target card to open the keyboard.
 
-## Gameplay
+## What changed
 
-1. Navigate through the 3D world using arrow keys and space to jump
-2. When you encounter obstacles or challenges, type the displayed word correctly
-3. Build up combos by typing words correctly in succession
-4. Progress through levels by completing typing challenges and avoiding obstacles
-5. Try to achieve the highest score possible!
+- One consistent input path for physical and on-screen keyboards
+- Responsive HUD and start/game-over states
+- Original TypeQuest character and refreshed scene art
+- Fixed target selection, player drift, resize handling, and event cleanup
+- Automated tests, dependency auditing, locked Docker installs, and weekly Dependabot updates
 
 ## Development
 
-The game is built using:
-- Three.js for 3D graphics
-- Vite for development and building
-- Modern JavaScript (ES6+)
+```bash
+npm test       # game-rule tests
+npm run build  # production bundle
+npm run check  # audit, test, and build
+```
 
+The project uses [Three.js](https://threejs.org/) and [Vite](https://vite.dev/). The game is intentionally asset-light: the scene, character, effects, and letter textures are generated in code.
 
-## Contributing
+## Docker
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```bash
+docker build -t typing-quest .
+docker run --rm -p 8080:8080 typing-quest
+```
+
+Then open `http://localhost:8080`.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+MIT
